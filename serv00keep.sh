@@ -20,14 +20,18 @@ export hy2_port=${hy2_port:-''}
 export IP=${IP:-''}                  
 export reym=${reym:-''}
 export reset=${reset:-''}
+export resport=${resport:-''}
 
 USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
 HOSTNAME=$(hostname)
 if [[ "$reset" =~ ^[Yy]$ ]]; then
-crontab -l | grep -v "serv00keep" >rmcron
-crontab rmcron >/dev/null 2>&1
-rm rmcron
+#crontab -l | grep -v "serv00keep" >rmcron
+#crontab rmcron >/dev/null 2>&1
+#rm rmcron
 bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
+rm -rf domains bin serv00keep.sh
+sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' "${HOME}/.bashrc" >/dev/null 2>&1
+source "${HOME}/.bashrc" >/dev/null 2>&1
 find ~ -type f -exec chmod 644 {} \; 2>/dev/null
 find ~ -type d -exec chmod 755 {} \; 2>/dev/null
 find ~ -type f -exec rm -f {} \; 2>/dev/null
@@ -46,18 +50,14 @@ nb=$(echo "$HOSTNAME" | cut -d '.' -f 1 | tr -d 's')
 ym=("$HOSTNAME" "cache$nb.serv00.com" "web$nb.serv00.com")
 rm -rf ip.txt hy2ip.txt
 for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=2 +short $ip >> hy2ip.txt
+dig @8.8.8.8 +time=5 +short $ip >> hy2ip.txt
 sleep 1  
 done
-for ym in "${ym[@]}"; do
-# 引用frankiejun API
-response=$(curl -s "https://ss.botai.us.kg/api/getip?host=$ym")
-if [[ -z "$response" ]]; then
-for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=2 +short $ip >> ip.txt
+for host in "${ym[@]}"; do
+response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.serv0.us.kg/api/getip?host=$host")
+if [[ "$response" =~ ^$|unknown|not|error ]]; then
+dig @8.8.8.8 +time=5 +short $host >> ip.txt
 sleep 1  
-done
-break
 else
 echo "$response" | while IFS='|' read -r ip status; do
 if [[ $status == "Accessible" ]]; then
@@ -132,6 +132,11 @@ if [[ -z "$reym" ]]; then
 reym=$USERNAME.serv00.net
 fi
 if [[ -z "$vless_port" ]] || [[ -z "$vmess_port" ]] || [[ -z "$hy2_port" ]]; then
+check_port
+fi
+}
+
+check_port(){
 port_list=$(devil port list)
 tcp_ports=$(echo "$port_list" | grep -c "tcp")
 udp_ports=$(echo "$port_list" | grep -c "udp")
@@ -204,7 +209,6 @@ fi
 export vless_port=$tcp_port1
 export vmess_port=$tcp_port2
 export hy2_port=$udp_port
-fi
 }
 
 download_and_run_singbox() {
@@ -282,7 +286,7 @@ openssl ecparam -genkey -name prime256v1 -out "private.key"
 openssl req -new -x509 -days 3650 -key "private.key" -out "cert.pem" -subj "/CN=$USERNAME.serv00.net"
 
 nb=$(hostname | cut -d '.' -f 1 | tr -d 's')
-if [ "$nb" == "14" ]; then
+if [[ "$nb" =~ (14|15|16) ]]; then
 ytb='"jnn-pa.googleapis.com",'
 fi
 hy1p=$(sed -n '1p' hy2ip.txt)
@@ -424,19 +428,28 @@ hy3p=$(sed -n '3p' hy2ip.txt)
     {
       "type": "direct",
       "tag": "direct"
-    },
-    {
-      "type": "block",
-      "tag": "block"
     }
   ],
    "route": {
+       "rule_set": [
+      {
+        "tag": "geosite-google-gemini",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-google-gemini.srs",
+        "download_detour": "direct"
+      }
+    ],
     "rules": [
     {
      "domain": [
      $ytb
      "oh.my.god"
       ],
+     "outbound": "wg"
+    },
+    {
+     "rule_set":"geosite-google-gemini",
      "outbound": "wg"
     }
     ],
@@ -445,8 +458,8 @@ hy3p=$(sed -n '3p' hy2ip.txt)
 }
 EOF
 
-if ! ps aux | grep '[c]onfig' > /dev/null; then
-ps aux | grep '[c]onfig' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+if ! ps aux | grep '[r]un -c con' > /dev/null; then
+ps aux | grep '[r]un -c con' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
 if [ -e "$(basename "${FILE_MAP[web]}")" ]; then
    echo "$(basename "${FILE_MAP[web]}")" > sb.txt
    sbb=$(cat sb.txt)   
@@ -527,11 +540,11 @@ else
 fi
 fi
 }
-if [ -z "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --url' > /dev/null; then
-ps aux | grep '[t]unnel --url' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+if [ -z "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --u' > /dev/null; then
+ps aux | grep '[t]unnel --u' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
 cfgo
-elif [ -n "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --no' > /dev/null; then
-ps aux | grep '[t]unnel --no' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+elif [ -n "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --n' > /dev/null; then
+ps aux | grep '[t]unnel --n' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
 cfgo
 else
 green "Arog进程已启动"
@@ -1062,14 +1075,19 @@ EOF
 
 sleep 2
 [ -d "$FILE_PATH" ] || mkdir -p "$FILE_PATH"
-echo "$baseurl" > ${FILE_PATH}/${USERNAME}_v2sub.txt
-cat clash_meta.yaml > ${FILE_PATH}/${USERNAME}_clashmeta.txt
-cat sing_box.json > ${FILE_PATH}/${USERNAME}_singbox.txt
-V2rayN_LINK="https://${USERNAME}.serv00.net/${USERNAME}_v2sub.txt"
-Clashmeta_LINK="https://${USERNAME}.serv00.net/${USERNAME}_clashmeta.txt"
-Singbox_LINK="https://${USERNAME}.serv00.net/${USERNAME}_singbox.txt"
+echo "$baseurl" > ${FILE_PATH}/${UUID}_v2sub.txt
+cat clash_meta.yaml > ${FILE_PATH}/${UUID}_clashmeta.txt
+cat sing_box.json > ${FILE_PATH}/${UUID}_singbox.txt
+V2rayN_LINK="https://${USERNAME}.serv00.net/${UUID}_v2sub.txt"
+Clashmeta_LINK="https://${USERNAME}.serv00.net/${UUID}_clashmeta.txt"
+Singbox_LINK="https://${USERNAME}.serv00.net/${UUID}_singbox.txt"
+allip=$(cat hy2ip.txt)
 cat > list.txt <<EOF
 =================================================================================================
+
+当前客户端正在使用的IP：$IP ,如默认节点IP被墙，可在客户端地址更换以下其他IP
+$allip
+-------------------------------------------------------------------------------------------------
 
 一、Vless-reality分享链接如下：
 $vl_link
@@ -1140,6 +1158,21 @@ cat list.txt
 sleep 2
 rm -rf sb.log core tunnel.yml tunnel.json fake_useragent_0.2.0.json
 }
+
+if [[ "$resport" =~ ^[Yy]$ ]]; then
+portlist=$(devil port list | grep -E '^[0-9]+[[:space:]]+[a-zA-Z]+' | sed 's/^[[:space:]]*//')
+if [[ -z "$portlist" ]]; then
+yellow "无端口"
+else
+while read -r line; do
+port=$(echo "$line" | awk '{print $1}')
+port_type=$(echo "$line" | awk '{print $2}')
+yellow "删除端口 $port ($port_type)"
+devil port del "$port_type" "$port"
+done <<< "$portlist"
+fi
+check_port
+fi
 
 install_singbox() {
 cd $WORKDIR
