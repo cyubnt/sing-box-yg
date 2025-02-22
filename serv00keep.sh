@@ -24,12 +24,13 @@ export resport=${resport:-''}
 
 USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
 HOSTNAME=$(hostname)
+snb=$(hostname | awk -F '.' '{print $1}')
 if [[ "$reset" =~ ^[Yy]$ ]]; then
 #crontab -l | grep -v "serv00keep" >rmcron
 #crontab rmcron >/dev/null 2>&1
 #rm rmcron
 bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
-rm -rf domains bin serv00keep.sh
+devil www del ${USERNAME}.serv00.net > /dev/null 2>&1
 sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' "${HOME}/.bashrc" >/dev/null 2>&1
 source "${HOME}/.bashrc" >/dev/null 2>&1
 find ~ -type f -exec chmod 644 {} \; 2>/dev/null
@@ -49,12 +50,11 @@ read_ip(){
 nb=$(echo "$HOSTNAME" | cut -d '.' -f 1 | tr -d 's')
 ym=("$HOSTNAME" "cache$nb.serv00.com" "web$nb.serv00.com")
 rm -rf ip.txt hy2ip.txt
-for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=5 +short $ip >> hy2ip.txt
-sleep 1  
-done
+dig @8.8.8.8 +time=5 +short "web$nb.serv00.com" >> hy2ip.txt
+dig @8.8.8.8 +time=5 +short "$HOSTNAME" >> hy2ip.txt
+dig @8.8.8.8 +time=5 +short "cache$nb.serv00.com" >> hy2ip.txt
 for host in "${ym[@]}"; do
-response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.serv0.us.kg/api/getip?host=$host")
+response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.fkj.pp.ua/api/getip?host=$host")
 if [[ "$response" =~ ^$|unknown|not|error ]]; then
 dig @8.8.8.8 +time=5 +short $host >> ip.txt
 sleep 1  
@@ -433,10 +433,10 @@ hy3p=$(sed -n '3p' hy2ip.txt)
    "route": {
        "rule_set": [
       {
-        "tag": "geosite-google-gemini",
+        "tag": "google-gemini",
         "type": "remote",
         "format": "binary",
-        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-google-gemini.srs",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google-gemini.srs",
         "download_detour": "direct"
       }
     ],
@@ -449,7 +449,7 @@ hy3p=$(sed -n '3p' hy2ip.txt)
      "outbound": "wg"
     },
     {
-     "rule_set":"geosite-google-gemini",
+     "rule_set":"google-gemini",
      "outbound": "wg"
     }
     ],
@@ -553,8 +553,8 @@ sleep 2
 if ! pgrep -x "$(cat sb.txt)" > /dev/null; then
 red "主进程未启动，根据以下情况一一排查"
 yellow "1、网页端权限是否开启"
-yellow "2、网页后台删除所有端口，让脚本自动生成随机可用端口"
-yellow "3、选择y运行一次重置"
+yellow "2、REP选择y重置一次随机端口，三个端口参数留空不填，再改为n（重要）"
+yellow "3、RES选择y运行一次重置系统，再改为n（重要）"
 yellow "4、当前Serv00服务器炸了？等会再试"
 red "5、以上都试了，哥直接躺平，交给进程保活，过会再来看"
 fi
@@ -1085,7 +1085,8 @@ allip=$(cat hy2ip.txt)
 cat > list.txt <<EOF
 =================================================================================================
 
-当前客户端正在使用的IP：$IP ,如默认节点IP被墙，可在客户端地址更换以下其他IP
+当前客户端正在使用的IP：$IP
+如默认节点IP被墙，可在客户端地址更换以下其他IP
 $allip
 -------------------------------------------------------------------------------------------------
 
@@ -1173,7 +1174,8 @@ done <<< "$portlist"
 fi
 check_port
 fi
-
+rm -rf $HOME/domains/${snb}.${USERNAME}.serv00.net/logs/*
+rm -rf $HOME/domains/${USERNAME}.serv00.net/logs/access/*
 install_singbox() {
 cd $WORKDIR
 read_ip
