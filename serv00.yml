@@ -1,4 +1,4 @@
-toname: Keep Servers Alive
+name: Keep Servers Alive
 
 on:
   schedule:
@@ -17,8 +17,8 @@ jobs:
     # 每行一个{serv00服务器}，一个服务也可，末尾用,间隔，最后一个服务器末尾无需用,间隔
       ACCOUNTS: >
         [
-        {"RES":"n", "SSH_USER":"ubnt15", "SSH_PASS":"(8@$9XgXs@RRa&HeJhG9", "REALITY":"www.wto.org", "SUUID":"d5a7c9b8-c6bd-459d-b71e-a9a4bf19874d", "TCP1_PORT":"47288", "TCP2_PORT":"4728", "UDP_PORT":"47288", "HOST":"s14.serv00.com", "ARGO_DOMAIN":"ubnt15.agro76.us.kg", "ARGO_AUTH":"eyJhIjoiZjc5ZDI4NDY4MWQ0NzM1ZThkNmYxMmRkOGE2YzA0MGIiLCJ0IjoiMjgzNjVmMjktMjEyZi00MWExLTljNzUtNDhlYmEzN2JmZGFjIiwicyI6IlkySmhPVEkxTnpBdE1EQTRaaTAwTkRNMExUbGpaR0l0TmpGaE1EY3hNVFEzT0dJdyJ9"},
-        {"RES":"n", "SSH_USER":"LeslieJohnson", "SSH_PASS":"guw1EWfFxO3V6sO8xIYP", "REALITY":"www.speedtest.net", "SUUID":"2fc5cb82-57f9-4d0d-9348-ca9f5e3cfd60", "TCP1_PORT":"5587", "TCP2_PORT":"55877", "UDP_PORT":"5587", "HOST":"s14.serv00.com", "ARGO_DOMAIN":"lesile.agro76.us.kg", "ARGO_AUTH":"eyJhIjoiZjc5ZDI4NDY4MWQ0NzM1ZThkNmYxMmRkOGE2YzA0MGIiLCJ0IjoiZDAxMTgwYzItMGEwNi00NDk3LWFhNzEtNjFlNDM2NmQ3ZWI5IiwicyI6IlpEVmpaVEV6TVdVdE1HRTFPQzAwWVROaExXSTFObVF0WTJNeE5qTmtZV1U1Wm1FMCJ9"}
+        {"RES":"n", "REP":"n", "SSH_USER":"你的serv00账号名", "SSH_PASS":"你的serv00账号密码", "REALITY":"你serv00账号名.serv00.net", "SUUID":"自设UUID", "TCP1_PORT":"vless的tcp端口", "TCP2_PORT":"vmess的tcp端口", "UDP_PORT":"hy2的udp端口", "HOST":"s1.serv00.com", "ARGO_DOMAIN":"", "ARGO_AUTH":""},
+        {"RES":"y", "REP":"y", "SSH_USER":"123456", "SSH_PASS":"7890000", "REALITY":"time.is", "SUUID":"73203ee6-b3fa-4a3d-b5df-6bb2f55073ad", "TCP1_PORT":"55254", "TCP2_PORT":"55255", "UDP_PORT":"55256", "HOST":"s16.serv00.com", "ARGO_DOMAIN":"你的argo固定域名", "ARGO_AUTH":"eyJhIjoiOTM3YzFjYWI88552NTFiYTM4ZTY0ZDQzRmlNelF0TkRBd1pUQTRNVEJqTUdVeCJ9"} 
         ]
     steps:
       - name: Checkout Repository
